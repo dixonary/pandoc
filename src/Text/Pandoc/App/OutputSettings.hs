@@ -188,10 +188,15 @@ optToOutputSettings opts = do
                                        readDataFile ("templates" </> tp')
                                     _ -> throwError e))
 
+  let templateSearchPath = case optTemplate opts of
+                             Nothing -> []
+                             Just tp -> [takeDirectory tp]
+
   templ <- case templStr of
              Nothing -> return Nothing
-             Just ts ->
-               case compileTemplate ts of
+             Just ts -> do
+               res <- compileTemplate templateSearchPath ts
+               case res of
                  Left  e -> throwError $ PandocTemplateError e
                  Right t -> return $ Just t
 

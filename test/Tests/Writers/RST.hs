@@ -3,6 +3,7 @@
 module Tests.Writers.RST (tests) where
 
 import Prelude
+import Control.Monad.Identity
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
@@ -20,13 +21,12 @@ infix 4 =:
 
 testTemplate :: (ToString a, ToString c, ToPandoc a) =>
                 String -> String -> (a, c) -> TestTree
-testTemplate t =
-  case compileTemplate (T.pack t) of
+testTemplate t = case runIdentity (compileTemplate [] (T.pack t)) of
     Left e -> error $ "Could not compile RST template: " ++ e
     Right templ -> test (purely (writeRST def{ writerTemplate = Just templ }) . toPandoc)
 
 bodyTemplate :: Template
-bodyTemplate = case compileTemplate "$body$\n" of
+bodyTemplate = case runIdentity (compileTemplate [] "$body$\n") of
                     Left e      -> error $
                       "Could not compile RST bodyTemplate" ++ e
                     Right templ -> templ
