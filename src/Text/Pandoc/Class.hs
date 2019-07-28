@@ -315,10 +315,16 @@ readFileFromDirs (d:ds) f = catchError
     (\_ -> readFileFromDirs ds f)
 
 instance TemplateMonad PandocIO where
-  getPartial fp = UTF8.toText <$> readFileStrict fp
+  getPartial fp =
+    lift $ UTF8.toText <$>
+      catchError (readFileStrict fp)
+        (\_ -> readDataFile ("templates" </> fp))
 
 instance TemplateMonad PandocPure where
-  getPartial fp = UTF8.toText <$> readFileStrict fp
+  getPartial fp =
+    lift $ UTF8.toText <$>
+      catchError (readFileStrict fp)
+        (\_ -> readDataFile ("templates" </> fp))
 
 --
 
